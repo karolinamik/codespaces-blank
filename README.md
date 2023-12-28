@@ -12,4 +12,5 @@ This is sample test automation project using BDD and Cucumber (https://cucumber.
 
 # Usage Guide
   - Open the terminal at skycell-task directory
+  - Define environment variables: SKYCELL_USERNAME, SKYCELL_PASSWORD, SKYCELL_API_KEY
   - Run `mvn test`
