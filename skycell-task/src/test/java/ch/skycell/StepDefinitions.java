@@ -8,7 +8,6 @@ import io.restassured.path.json.JsonPath;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.time.Instant;
-import java.util.Optional;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.JSONObject;
@@ -21,18 +20,13 @@ public class StepDefinitions {
     private Response authResponse;
     private String accessToken;
     private Response sensorResponse;
-    private String incorrectHexString;
 
-    public Response request_to_create_logger(String loggerType, Optional<String> loggerNumber) {
-
-        String ln;
-        if (loggerNumber.isEmpty()) {
-            ln = RandomStringUtils.random(16, "0123456789ABCDEF");
-        } else {
-            ln = loggerType.intern();
+    public Response request_to_create_logger(String loggerType, String loggerNumber) {
+        if (loggerNumber == null) {
+            loggerNumber = RandomStringUtils.random(16, "0123456789ABCDEF");
         }
         JSONObject jsonObj = new JSONObject()
-                .put("loggerNumber", randomHexString)
+                .put("loggerNumber", loggerNumber)
                 .put("loggerType", loggerType)
                 .put("baseInterval", 600);
 
@@ -51,8 +45,8 @@ public class StepDefinitions {
 
         assertNotNull(username);
         assertNotNull(password);
-        assert (username.length() > 0);
-        assert (password.length() > 0);
+        assert(!username.isEmpty());
+        assert(!password.isEmpty());
     }
 
     @When("sending a request to authenticate")
@@ -68,7 +62,7 @@ public class StepDefinitions {
                 .when()
                 .post("/realms/skycell/protocol/openid-connect/token");
 
-        assertEquals(authResponse.getStatusCode(), 200);
+        assertEquals(200, authResponse.getStatusCode());
     }
 
     @Then("the response contains authentication token")
@@ -77,7 +71,7 @@ public class StepDefinitions {
         accessToken = jsonPath.getString("access_token");
 
         assertNotNull(accessToken);
-        assert (accessToken.length() > 0);
+        assert (!accessToken.isEmpty());
     }
 
     @Then("the token is a valid JWT token")
@@ -98,50 +92,27 @@ public class StepDefinitions {
         String apiKey = System.getenv("SKYCELL_API_KEY");
 
         assertNotNull(apiKey);
-        assert (apiKey.length() > 0);
+        assert (!apiKey.isEmpty());
     }
 
     @When("a user makes API requests to create logger with type {string}")
     public void a_user_makes_api_requests_to_create_logger_with_type(String loggerType) {
-        sensorResponse = request_to_create_logger(loggerType);
+        sensorResponse = request_to_create_logger(loggerType, null);
     }
 
     @Then("the system should respond with successful creation messages for each logger")
     public void the_system_should_respond_with_successful_creation_messages_for_each_logger() {
-        assertEquals(sensorResponse.getStatusCode(), 201);
+        assertEquals(201, sensorResponse.getStatusCode());
     }
 
-    @Given("the incorrect logger number")
-    public void the_incorrect_logger_number() {
-        incorrectHexString = RandomStringUtils.random(16, "GHIJKLMOPRSTWUZ");
-    }
-
-    @When("a user makes API requests to create logger")
-    public void a_user_makes_api_requests_to_create_logger() {
-        sensorResponse = request_to_create_logger();
+    @Given("{string} or {string} is invalid")
+    public void logger_type_or_logger_number_is_invalid(String loggerType, String loggerNumber) {
+        sensorResponse = request_to_create_logger(loggerType, loggerNumber);
     }
 
     @Then("the system should not create the logger")
     public void the_system_should_not_create_the_logger() {
         // Write code here that turns the phrase above into concrete actions
-        throw new io.cucumber.java.PendingException();
-    }
-
-    @Given("the incorrect logger type")
-    public void the_incorrect_logger_type() {
-        // Write code here that turns the phrase above into concrete actions
-        throw new io.cucumber.java.PendingException();
-    }
-
-    @When("a user makes API requests to create logger")
-    public void a_user_makes_api_requests_to_create_logger() {
-        // Write code here that turns the phrase above into concrete actions
-        throw new io.cucumber.java.PendingException();
-    }
-
-    @Then("the system should not create the logger")
-    public void the_system_should_not_create_the_logger() {
-        // Write code here that turns the phrase above into concrete actions
-        throw new io.cucumber.java.PendingException();
+        assertEquals(400, sensorResponse.getStatusCode());
     }
 }
