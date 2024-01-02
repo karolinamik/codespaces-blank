@@ -9,3 +9,13 @@ Feature: Logger Creation
     | logger_type |
     | MR_810T     |
     | MR_812P     |
+
+  Scenario: Logger with incorrect type not created
+    Given the incorrect logger type
+    When a user makes API requests to create logger
+    Then the system should not create the logger
+
+  Scenario: Logger with incorrect number not created
+    Given the incorrect logger number
+    When a user makes API requests to create logger
+    Then the system should not create the logger

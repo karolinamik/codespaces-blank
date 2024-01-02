@@ -8,9 +8,10 @@ import io.restassured.path.json.JsonPath;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.time.Instant;
+import java.util.Optional;
+
 import org.apache.commons.lang3.RandomStringUtils;
-import java.util.HashMap;
-import java.util.Map;
+import org.json.JSONObject;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,6 +21,28 @@ public class StepDefinitions {
     private Response authResponse;
     private String accessToken;
     private Response sensorResponse;
+    private String incorrectHexString;
+
+    public Response request_to_create_logger(String loggerType, Optional<String> loggerNumber) {
+
+        String ln;
+        if (loggerNumber.isEmpty()) {
+            ln = RandomStringUtils.random(16, "0123456789ABCDEF");
+        } else {
+            ln = loggerType.intern();
+        }
+        JSONObject jsonObj = new JSONObject()
+                .put("loggerNumber", randomHexString)
+                .put("loggerType", loggerType)
+                .put("baseInterval", 600);
+
+        return RestAssured.given()
+                .contentType(ContentType.JSON)
+                .header("APIKEY", System.getenv("SKYCELL_API_KEY"))
+                .body(jsonObj.toString())
+                .when()
+                .post("/v1/lora/configuration");
+    }
 
     @Given("credentials are definied")
     public void credentials_are_definied() {
@@ -30,7 +53,6 @@ public class StepDefinitions {
         assertNotNull(password);
         assert (username.length() > 0);
         assert (password.length() > 0);
-
     }
 
     @When("sending a request to authenticate")
@@ -81,22 +103,45 @@ public class StepDefinitions {
 
     @When("a user makes API requests to create logger with type {string}")
     public void a_user_makes_api_requests_to_create_logger_with_type(String loggerType) {
-        String randomHexString = RandomStringUtils.random(16, "0123456789ABCDEF");
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("loggerNumber", randomHexString);
-        requestBody.put("loggerType", loggerType);
-        requestBody.put("baseInterval", 600);
-
-        sensorResponse = RestAssured.given()
-                .contentType(ContentType.JSON)
-                .header("APIKEY", System.getenv("SKYCELL_API_KEY"))
-                .body(requestBody)
-                .when()
-                .post("/v1/lora/configuration");
+        sensorResponse = request_to_create_logger(loggerType);
     }
 
     @Then("the system should respond with successful creation messages for each logger")
     public void the_system_should_respond_with_successful_creation_messages_for_each_logger() {
         assertEquals(sensorResponse.getStatusCode(), 201);
+    }
+
+    @Given("the incorrect logger number")
+    public void the_incorrect_logger_number() {
+        incorrectHexString = RandomStringUtils.random(16, "GHIJKLMOPRSTWUZ");
+    }
+
+    @When("a user makes API requests to create logger")
+    public void a_user_makes_api_requests_to_create_logger() {
+        sensorResponse = request_to_create_logger();
+    }
+
+    @Then("the system should not create the logger")
+    public void the_system_should_not_create_the_logger() {
+        // Write code here that turns the phrase above into concrete actions
+        throw new io.cucumber.java.PendingException();
+    }
+
+    @Given("the incorrect logger type")
+    public void the_incorrect_logger_type() {
+        // Write code here that turns the phrase above into concrete actions
+        throw new io.cucumber.java.PendingException();
+    }
+
+    @When("a user makes API requests to create logger")
+    public void a_user_makes_api_requests_to_create_logger() {
+        // Write code here that turns the phrase above into concrete actions
+        throw new io.cucumber.java.PendingException();
+    }
+
+    @Then("the system should not create the logger")
+    public void the_system_should_not_create_the_logger() {
+        // Write code here that turns the phrase above into concrete actions
+        throw new io.cucumber.java.PendingException();
     }
 }
