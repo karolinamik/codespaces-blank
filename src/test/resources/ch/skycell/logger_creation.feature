@@ -10,7 +10,7 @@ Feature: Logger Creation
       | MR_810T     |
       | MR_812P     |
 
-  Scenario Outline: Logger with incorrect type not created
+  Scenario Outline: Logger with incorrect data not created
     Given "<logger_type>" or "<logger_number>" is invalid
     Then the system should not create the logger
 

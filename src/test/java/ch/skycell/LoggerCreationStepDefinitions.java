@@ -4,21 +4,13 @@ import io.cucumber.java.en.*;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import io.restassured.path.json.JsonPath;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import java.time.Instant;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.JSONObject;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class StepDefinitions {
-    private final String AUTH_BASE_URL = "https://keycloak.dev.skycell.ch";
+public class LoggerCreationStepDefinitions {
     private final String SENSOR_BASE_URL = "https://sensor-data-ingestion.dev.skycell.ch";
-    private Response authResponse;
-    private String accessToken;
     private Response sensorResponse;
 
     public Response request_to_create_logger(String loggerType, String loggerNumber) {
@@ -36,54 +28,6 @@ public class StepDefinitions {
                 .body(jsonObj.toString())
                 .when()
                 .post("/v1/lora/configuration");
-    }
-
-    @Given("credentials are definied")
-    public void credentials_are_definied() {
-        String username = System.getenv("SKYCELL_USERNAME");
-        String password = System.getenv("SKYCELL_PASSWORD");
-
-        assertNotNull(username);
-        assertNotNull(password);
-        assert(!username.isEmpty());
-        assert(!password.isEmpty());
-    }
-
-    @When("sending a request to authenticate")
-    public void sending_a_request_to_authenticate() {
-        RestAssured.baseURI = AUTH_BASE_URL;
-
-        authResponse = RestAssured.given()
-                .contentType(ContentType.URLENC)
-                .formParam("client_id", "webapp")
-                .formParam("grant_type", "password")
-                .formParam("username", System.getenv("SKYCELL_USERNAME"))
-                .formParam("password", System.getenv("SKYCELL_PASSWORD"))
-                .when()
-                .post("/realms/skycell/protocol/openid-connect/token");
-
-        assertEquals(200, authResponse.getStatusCode());
-    }
-
-    @Then("the response contains authentication token")
-    public void the_response_contains_authentication_token() {
-        JsonPath jsonPath = new JsonPath(authResponse.asString());
-        accessToken = jsonPath.getString("access_token");
-
-        assertNotNull(accessToken);
-        assert (!accessToken.isEmpty());
-    }
-
-    @Then("the token is a valid JWT token")
-    public void the_token_is_a_valid_jwt_token() {
-        String issuer = "https://keycloak.dev.skycell.ch/realms/skycell";
-        Instant now = Instant.now();
-        DecodedJWT jwt = JWT.decode(accessToken);
-
-        assertTrue(jwt.getIssuedAtAsInstant().isBefore(now));
-        assertTrue(jwt.getExpiresAtAsInstant().isAfter(now));
-        assertEquals(jwt.getIssuer(), issuer);
-        // TODO to consider verifying token signature
     }
 
     @Given("the API for logger creation is defined")
