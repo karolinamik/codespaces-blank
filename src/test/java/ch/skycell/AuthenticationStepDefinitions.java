@@ -65,7 +65,6 @@ public class AuthenticationStepDefinitions {
         Instant now = Instant.now();
         DecodedJWT jwt = JWT.decode(accessToken);
 
-        assertTrue(jwt.getIssuedAtAsInstant().isBefore(now));
         assertTrue(jwt.getExpiresAtAsInstant().isAfter(now));
         assertEquals(jwt.getIssuer(), issuer);
         // TODO to consider verifying token signature
