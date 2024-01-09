@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LoggerDataStepDefinitions extends LoggerRequest {
     private String loggerNumber;
-    Response dataResponse;
+    private Response dataResponse;
 
     @Given("the logger with type {string} is created")
     public void the_logger_with_type_is_created(String string) {

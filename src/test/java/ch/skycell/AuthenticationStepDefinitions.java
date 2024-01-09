@@ -20,10 +20,10 @@ public class AuthenticationStepDefinitions {
     private String username;
     private String password;
 
-    public Response request_to_authenticate(String username, String password) {
+    private Response request_to_authenticate(String username, String password) {
         RestAssured.baseURI = AUTH_BASE_URL;
 
-        return authResponse = RestAssured.given()
+        return RestAssured.given()
                 .contentType(ContentType.URLENC)
                 .formParam("client_id", "webapp")
                 .formParam("grant_type", "password")
@@ -46,7 +46,7 @@ public class AuthenticationStepDefinitions {
 
     @When("sending a request to authenticate")
     public void sending_a_request_to_authenticate() {
-        request_to_authenticate(username, password);
+        authResponse = request_to_authenticate(username, password);
     }
 
     @Then("the response contains authentication token")
@@ -72,7 +72,7 @@ public class AuthenticationStepDefinitions {
 
     @Given("password is incorrect")
     public void password_is_incorrect() {
-        request_to_authenticate(username, "notCorrectPass11");
+        authResponse = request_to_authenticate(username, "notCorrectPass11");
     }
 
     @Then("user not authenticated")
